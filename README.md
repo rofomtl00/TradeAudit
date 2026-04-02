@@ -146,16 +146,42 @@ The core library is free and open source. The proxy and advanced features requir
 
 **$14.99 CAD/month** — [Get Pro License](https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312)
 
-```bash
-# Start proxy with Pro license
-python proxy.py --exchange bitget --license YOUR_LICENSE_KEY
+Your license key is emailed immediately after purchase. Activate on up to 3 machines.
 
-# Or set as environment variable
+### Pro Install (one command)
+
+After purchasing, run this in your terminal. It detects Docker automatically — if you have it, it runs as a container. If not, it installs with Python. Either way, one command:
+
+```bash
+curl -sL https://raw.githubusercontent.com/rofomtl00/TradeAudit/master/install.sh | bash
+```
+
+It will ask for your license key, exchange, and API credentials. Then:
+
+```
+~/tradeaudit/start.sh    # Start the proxy
+~/tradeaudit/stop.sh     # Stop the proxy
+```
+
+Point your bot at `http://localhost:8877` instead of the exchange. Done.
+
+### Pro Manual Install (if you prefer)
+
+```bash
+# With Docker
+docker build -t tradeaudit .
+docker run -d --name tradeaudit \
+  -e TRADEAUDIT_LICENSE_KEY=your_key \
+  -e TRADEAUDIT_API_KEY=your_key \
+  -e TRADEAUDIT_API_SECRET=your_secret \
+  -v ./audit_data:/app/audit_data \
+  -p 8877:8877 \
+  tradeaudit --exchange bitget
+
+# Without Docker
 export TRADEAUDIT_LICENSE_KEY=your_key
 python proxy.py --exchange bitget
 ```
-
-Your license key is emailed immediately after purchase. Activate on up to 3 machines.
 
 ## File Management
 

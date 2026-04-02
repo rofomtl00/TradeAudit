@@ -124,6 +124,39 @@ The hash chain proves records weren't modified *relative to each other*. But wha
 | `/audit/digest` | POST | Write daily digest |
 | `/audit/reconcile` | POST | Manual balance reconciliation |
 
+## Free vs Pro
+
+The core library is free and open source. The proxy and advanced features require a Pro license.
+
+| Feature | Free | Pro |
+|---------|------|-----|
+| Core audit logging (Python library) | Yes | Yes |
+| SHA-256 hash chain verification | Yes | Yes |
+| Daily digest generation | Yes | Yes |
+| Chain integrity verification | Yes | Yes |
+| **Proxy mode** — works with any bot, any language | - | **Yes** |
+| **Balance reconciliation alerts** | - | **Yes** |
+| **Multi-exchange support** | - | **Yes** |
+| **Full API call logging** | - | **Yes** |
+| **Email digest automation** | - | **Yes** |
+
+**Free tier** is for Python developers who integrate TradeAudit directly into their bot code.
+
+**Pro tier** is for everyone else — the proxy sits between your bot and the exchange, logging everything automatically. No code changes needed. Works with 3Commas, Gunbot, Pionex API, custom bots in any language, AI trading agents, or any tool that calls an exchange API.
+
+**$14.99 CAD/month** — [Get Pro License](https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312)
+
+```bash
+# Start proxy with Pro license
+python proxy.py --exchange bitget --license YOUR_LICENSE_KEY
+
+# Or set as environment variable
+export TRADEAUDIT_LICENSE_KEY=your_key
+python proxy.py --exchange bitget
+```
+
+Your license key is emailed immediately after purchase. Activate on up to 3 machines.
+
 ## File Management
 
 - Audit trail rotates at 10 MB (configurable)
@@ -133,4 +166,4 @@ The hash chain proves records weren't modified *relative to each other*. But wha
 
 ## License
 
-MIT
+Core library: MIT. Pro features require a paid license.

@@ -35,11 +35,21 @@ except ImportError:
     sys.exit(1)
 
 from tradeaudit import TradeAudit
+from license import License
 
 app = Flask(__name__)
 audit = None       # TradeAudit instance
 exchange = None    # ccxt exchange instance
+lic = None         # License instance
 log = logging.getLogger("tradeaudit")
+
+
+def _require_pro(feature: str):
+    """Check if feature is available. Returns error response or None."""
+    if lic and not lic.has_feature(feature):
+        return jsonify({"ok": False, "error": f"Pro feature: {feature}. Get a license at https://tradeaudit.lemonsqueezy.com",
+                        "plan": lic.plan}), 403
+    return None
 
 
 def create_exchange(exchange_id: str, api_key: str, api_secret: str,
@@ -68,6 +78,8 @@ def create_exchange(exchange_id: str, api_key: str, api_secret: str,
 @app.route("/api/balance", methods=["GET"])
 def proxy_balance():
     """Proxy: fetch_balance"""
+    gate = _require_pro("proxy")
+    if gate: return gate
     try:
         bal = exchange.fetch_balance()
         # Log the raw balance
@@ -94,6 +106,8 @@ def proxy_ticker(symbol):
 @app.route("/api/order", methods=["POST"])
 def proxy_create_order():
     """Proxy: create_order — THE critical endpoint to audit."""
+    gate = _require_pro("proxy")
+    if gate: return gate
     body = request.get_json() or {}
     symbol = body.get("symbol", "")
     order_type = body.get("type", "market")
@@ -213,7 +227,17 @@ def proxy_funding_rate(symbol):
 @app.route("/audit/status", methods=["GET"])
 def audit_status():
     """Check audit trail status and chain integrity."""
-    return jsonify(audit.status())
+    data = audit.status()
+    if lic:
+        data["license"] = lic.status()
+    return jsonify(data)
+
+@app.route("/license/status", methods=["GET"])
+def license_status():
+    """Check license status."""
+    if lic:
+        return jsonify(lic.status())
+    return jsonify({"plan": "free"})
 
 
 @app.route("/audit/verify", methods=["GET"])
@@ -271,6 +295,7 @@ def main():
     parser.add_argument("--passphrase", help="API passphrase (or set TRADEAUDIT_API_PASSPHRASE env var)")
     parser.add_argument("--port", "-p", type=int, default=8877, help="Proxy port (default: 8877)")
     parser.add_argument("--dir", "-d", default="./audit_data", help="Audit trail directory (default: ./audit_data)")
+    parser.add_argument("--license", "-l", help="Pro license key (or set TRADEAUDIT_LICENSE_KEY env var)")
     parser.add_argument("--sandbox", action="store_true", help="Use exchange sandbox/testnet")
     args = parser.parse_args()
 
@@ -283,18 +308,25 @@ def main():
         print("  Set via --key/--secret flags or TRADEAUDIT_API_KEY/TRADEAUDIT_API_SECRET env vars")
         sys.exit(1)
 
-    global audit, exchange
+    global audit, exchange, lic
     audit = TradeAudit(args.dir)
     exchange = create_exchange(args.exchange, api_key, api_secret, passphrase, args.sandbox)
 
+    # License validation
+    license_key = args.license or os.environ.get("TRADEAUDIT_LICENSE_KEY", "")
+    lic = License(license_key)
+    lic_result = lic.validate()
+
     # Log startup
-    audit.log_event("PROXY_START", detail=f"exchange={args.exchange} port={args.port}")
+    audit.log_event("PROXY_START", detail=f"exchange={args.exchange} port={args.port} plan={lic.plan}")
 
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s")
     log.info(f"TradeAudit Proxy v{__import__('tradeaudit').__version__}")
     log.info(f"Exchange: {args.exchange}")
     log.info(f"Audit trail: {os.path.abspath(args.dir)}")
+    log.info(f"License: {lic_result['message']}")
+    log.info(f"Plan: {lic.plan.upper()} — features: {', '.join(sorted(lic.status()['features']))}")
     log.info(f"Listening on http://localhost:{args.port}")
     log.info(f"Point your bot at this URL instead of the exchange API")
 

@@ -183,12 +183,12 @@ a:hover{text-decoration:underline}
       <div class="amount">$19<span>/mo</span></div>
       <ul>
         <li>Everything in Free</li>
+        <li>One-command install</li>
+        <li>Web dashboard (no terminal needed)</li>
         <li>Proxy mode (any bot, any language)</li>
-        <li>Balance reconciliation alerts</li>
+        <li>Balance reconciliation tracking</li>
         <li>Multi-exchange support</li>
-        <li>Email digest automation</li>
         <li>Full API call logging</li>
-        <li>Priority support</li>
       </ul>
       <a href="https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312" class="btn btn-primary" id="buy-pro" style="width:100%">Get Pro License</a>
     </div>
@@ -197,16 +197,18 @@ a:hover{text-decoration:underline}
 
 <section style="padding:60px 0;border-top:1px solid #1a1a1a">
   <h2 style="font-size:28px;color:#fff;margin-bottom:24px;text-align:center">Quick Start</h2>
+  <p style="text-align:center;color:#999;margin-bottom:24px">Pro: one command installs everything. Opens a web dashboard at localhost:8877 — no terminal needed after install.</p>
   <div class="code-block"><code>
-# Clone the repo<br>
-git clone https://github.com/rofomtl00/TradeAudit.git<br>
-cd TradeAudit<br>
+# Pro: one-command install (asks for license key + exchange credentials)<br>
+curl -sL https://raw.githubusercontent.com/rofomtl00/TradeAudit/master/install.sh | bash<br>
+<br>
+# Then open http://localhost:8877 in your browser for the dashboard<br>
+# Start/stop anytime:<br>
+~/tradeaudit/start.sh<br>
+~/tradeaudit/stop.sh<br>
+<br>
+# Free: Python library only (for developers)<br>
 pip install -r requirements.txt<br>
-<br>
-# Start the proxy (Pro license required)<br>
-python proxy.py --exchange bitget --license YOUR_KEY<br>
-<br>
-# Or use as a library (Free)<br>
 python -c "from tradeaudit import TradeAudit; a = TradeAudit('.'); print(a.status())"
   </code></div>
 </section>

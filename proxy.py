@@ -47,7 +47,7 @@ log = logging.getLogger("tradeaudit")
 def _require_pro(feature: str):
     """Check if feature is available. Returns error response or None."""
     if lic and not lic.has_feature(feature):
-        return jsonify({"ok": False, "error": f"Pro feature: {feature}. Get a license at https://tradeaudit.lemonsqueezy.com",
+        return jsonify({"ok": False, "error": f"Pro feature: {feature}. Get a license at https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312",
                         "plan": lic.plan}), 403
     return None
 

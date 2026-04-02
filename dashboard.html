@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeAudit Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:20px;color:#fff}.header h1 span{color:#60a5fa}
+.header .plan{font-size:13px;padding:4px 10px;border-radius:4px;font-weight:600}
+.plan-free{background:#1a1a2e;color:#60a5fa}
+.plan-pro{background:#14532d;color:#22c55e}
+.main{max-width:1000px;margin:0 auto;padding:24px}
+
+/* Setup screen */
+.setup{max-width:500px;margin:60px auto;background:#111;border:1px solid #222;border-radius:12px;padding:32px}
+.setup h2{font-size:22px;color:#fff;margin-bottom:8px}
+.setup p{color:#999;font-size:14px;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;color:#999;margin-bottom:4px;font-weight:500}
+.field input,.field select{width:100%;padding:10px 12px;background:#0a0a0a;border:1px solid #333;border-radius:6px;color:#fff;font-size:15px;outline:none}
+.field input:focus,.field select:focus{border-color:#2563eb}
+.field small{color:#666;font-size:12px;margin-top:4px;display:block}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:#2563eb;color:#fff;width:100%}
+.btn-primary:hover{background:#1d4ed8}
+.btn-danger{background:#7f1d1d;color:#ef4444}
+.btn-danger:hover{background:#991b1b}
+.btn-green{background:#14532d;color:#22c55e}
+.btn-green:hover{background:#166534}
+.msg{padding:12px;border-radius:6px;margin-bottom:16px;font-size:14px}
+.msg-ok{background:#14532d;color:#22c55e;border:1px solid #166534}
+.msg-err{background:#450a0a;color:#ef4444;border:1px solid #7f1d1d}
+.msg-warn{background:#451a03;color:#f59e0b;border:1px solid #78350f}
+
+/* Dashboard cards */
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:24px}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:16px}
+.card .label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.card .value{font-size:28px;font-weight:700;color:#fff}
+.card .sub{font-size:13px;color:#999;margin-top:4px}
+.card.ok .value{color:#22c55e}
+.card.warn .value{color:#f59e0b}
+.card.err .value{color:#ef4444}
+
+/* Event log */
+.log{background:#111;border:1px solid #222;border-radius:10px;padding:20px}
+.log h3{font-size:16px;color:#fff;margin-bottom:12px}
+.log table{width:100%;border-collapse:collapse;font-size:13px}
+.log th{text-align:left;padding:8px;color:#666;border-bottom:1px solid #222;font-weight:500}
+.log td{padding:8px;border-bottom:1px solid #1a1a1a;color:#ccc}
+.log .ev{font-weight:600;font-size:12px;padding:2px 8px;border-radius:3px;display:inline-block}
+.ev-DECISION{background:#1e3a5f;color:#60a5fa}
+.ev-ORDER_OPEN{background:#14532d;color:#22c55e}
+.ev-ORDER_CLOSE{background:#451a03;color:#f59e0b}
+.ev-RECONCILE{background:#312e81;color:#a78bfa}
+.ev-BALANCE{background:#1a1a2e;color:#999}
+.ev-API_ERROR{background:#450a0a;color:#ef4444}
+.ev-PROXY_START{background:#1a1a2e;color:#999}
+
+.actions{display:flex;gap:8px;margin-bottom:24px}
+
+@media(max-width:768px){.cards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Trade<span>Audit</span></h1>
+  <div>
+    <span class="plan" id="planBadge">FREE</span>
+  </div>
+</div>
+
+<div class="main" id="app">
+  <div style="text-align:center;padding:60px;color:#666">Loading...</div>
+</div>
+
+<script>
+const API = '';  // Same origin
+let state = {};
+
+async function api(path, opts) {
+  try {
+    const r = await fetch(API + path, opts);
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+async function poll() {
+  const [status, license, trail] = await Promise.all([
+    api('/audit/status'),
+    api('/license/status'),
+    api('/audit/trail?limit=50'),
+  ]);
+  state = { status, license, trail };
+  render();
+}
+
+function render() {
+  const s = state.status || {};
+  const l = state.license || s.license || {};
+  const t = state.trail || [];
+  const app = document.getElementById('app');
+  const badge = document.getElementById('planBadge');
+
+  // Plan badge
+  const isPro = l.plan === 'pro';
+  badge.textContent = isPro ? 'PRO' : 'FREE';
+  badge.className = 'plan ' + (isPro ? 'plan-pro' : 'plan-free');
+
+  // Chain status
+  const chainOk = s.chain_valid !== false;
+  const rows = s.rows || 0;
+  const digests = s.digests || 0;
+  const sizeKb = s.size_kb || 0;
+
+  // Reconcile delta from trail
+  let lastDelta = null;
+  if (Array.isArray(t)) {
+    for (let i = t.length - 1; i >= 0; i--) {
+      if (t[i].event === 'RECONCILE') {
+        try {
+          const inputs = JSON.parse(t[i].decision_inputs || '{}');
+          lastDelta = inputs.delta;
+        } catch(e) {}
+        break;
+      }
+    }
+  }
+
+  let h = '';
+
+  // Status cards
+  h += '<div class="cards">';
+  h += `<div class="card ${chainOk ? 'ok' : 'err'}">
+    <div class="label">Chain</div>
+    <div class="value">${chainOk ? 'Valid' : 'BROKEN'}</div>
+    <div class="sub">${chainOk ? 'All hashes verified' : 'Broken at row ' + (s.chain_broken_at || '?')}</div>
+  </div>`;
+  h += `<div class="card">
+    <div class="label">Events</div>
+    <div class="value">${rows}</div>
+    <div class="sub">${(sizeKb/1024).toFixed(1)} MB on disk</div>
+  </div>`;
+  h += `<div class="card">
+    <div class="label">Digests</div>
+    <div class="value">${digests}</div>
+    <div class="sub">Daily SHA-256 anchors</div>
+  </div>`;
+  h += `<div class="card ${lastDelta !== null ? (Math.abs(lastDelta) < 1 ? 'ok' : 'warn') : ''}">
+    <div class="label">Reconcile Delta</div>
+    <div class="value">${lastDelta !== null ? '$' + lastDelta.toFixed(2) : '--'}</div>
+    <div class="sub">${lastDelta !== null ? (Math.abs(lastDelta) < 1 ? 'PnL matches exchange' : 'Discrepancy detected') : 'No reconciliation yet'}</div>
+  </div>`;
+  h += '</div>';
+
+  // Actions
+  h += '<div class="actions">';
+  h += `<button class="btn btn-green" onclick="writeDigest()">Write Digest Now</button>`;
+  h += `<button class="btn" style="background:#1e3a5f;color:#60a5fa" onclick="verifyChain()">Verify Chain</button>`;
+  h += '</div>';
+
+  // Event log
+  h += '<div class="log"><h3>Recent Events</h3>';
+  if (Array.isArray(t) && t.length > 0) {
+    h += '<table><thead><tr><th>Time</th><th>Event</th><th>Symbol</th><th>Detail</th><th>Hash</th></tr></thead><tbody>';
+    const events = t.slice().reverse().slice(0, 50);
+    for (const e of events) {
+      const time = e.timestamp ? e.timestamp.split('T')[1]?.split('.')[0] || '' : '';
+      const date = e.timestamp ? e.timestamp.split('T')[0] : '';
+      const hash = (e.hash || '').slice(0, 12) + '...';
+      h += `<tr>
+        <td title="${date}">${time}</td>
+        <td><span class="ev ev-${e.event}">${e.event}</span></td>
+        <td>${e.symbol === 'ACCOUNT' ? '' : (e.symbol || '').split('/')[0]}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(e.detail || '')}">${esc(e.detail || '')}</td>
+        <td style="font-family:monospace;font-size:11px;color:#666">${hash}</td>
+      </tr>`;
+    }
+    h += '</tbody></table>';
+  } else {
+    h += '<div style="text-align:center;padding:40px;color:#666">No events yet. The proxy will log events as your bot trades.</div>';
+  }
+  h += '</div>';
+
+  app.innerHTML = h;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function writeDigest() {
+  const r = await api('/audit/digest', { method: 'POST' });
+  if (r && r.digest) {
+    alert('Digest written: ' + r.digest.slice(0, 32) + '...\n\nEmail this hash to yourself as proof.');
+  }
+  poll();
+}
+
+async function verifyChain() {
+  const r = await api('/audit/verify');
+  if (r) {
+    if (r.valid) {
+      alert('Chain is VALID. All ' + r.rows + ' rows verified.');
+    } else {
+      alert('Chain is BROKEN at row ' + r.broken_at + (r.error ? ': ' + r.error : ''));
+    }
+  }
+  poll();
+}
+
+// Add trail endpoint to proxy
+poll();
+setInterval(poll, 10000);
+</script>
+</body>
+</html>

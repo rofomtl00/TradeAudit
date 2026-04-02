@@ -37,7 +37,7 @@ except ImportError:
 from tradeaudit import TradeAudit
 from license import License
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 audit = None       # TradeAudit instance
 exchange = None    # ccxt exchange instance
 lic = None         # License instance
@@ -267,6 +267,32 @@ def audit_reconcile():
                         "expected": base + internal_pnl, "delta": delta})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ── DASHBOARD ──
+
+@app.route("/", methods=["GET"])
+def dashboard():
+    """Serve the web dashboard."""
+    html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r") as f:
+            return f.read(), 200, {"Content-Type": "text/html"}
+    return "<h1>TradeAudit</h1><p>Dashboard not found. Place dashboard.html next to proxy.py.</p>", 200
+
+@app.route("/audit/trail", methods=["GET"])
+def audit_trail():
+    """Return recent audit trail events as JSON."""
+    import csv as _csv
+    limit = int(request.args.get("limit", 50))
+    if not os.path.exists(audit.trail_path):
+        return jsonify([])
+    try:
+        with open(audit.trail_path, "r") as f:
+            rows = list(_csv.DictReader(f))
+        return jsonify(rows[-limit:])
+    except Exception:
+        return jsonify([])
 
 
 # ── HELPERS ──

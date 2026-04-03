@@ -44,6 +44,12 @@ async function refresh() {
   document.getElementById('digests').textContent = digests.length;
   document.getElementById('chainLabel').textContent = entries.length ? 'chain ok' : '—';
 
+  // Storage size estimate
+  const sizeKB = Math.round(JSON.stringify(entries).length / 1024);
+  const maxKB = Math.round(10000 * (JSON.stringify(entries[0] || {}).length || 200) / 1024);
+  document.getElementById('storageInfo').textContent = entries.length ?
+    sizeKB + ' KB · max 10K entries' : 'no data';
+
   // Recent entries
   const el = document.getElementById('entries');
   if (entries.length === 0) {
@@ -136,6 +142,17 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
   a.href = URL.createObjectURL(blob);
   a.download = 'tradeaudit_trail.csv';
   a.click();
+});
+
+// ── Clear ──
+document.getElementById('clearBtn').addEventListener('click', async () => {
+  const store = await api.storage.local.get(AUDIT_KEY);
+  const count = (store[AUDIT_KEY] || []).length;
+  if (!count) { toast('Nothing to clear.', ''); return; }
+  if (!confirm('Delete all ' + count + ' audit entries? Export first if you need them.')) return;
+  await api.storage.local.remove([AUDIT_KEY]);
+  toast('Cleared ' + count + ' entries.', 'ok');
+  refresh();
 });
 
 async function sha256(msg) {

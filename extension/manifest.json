@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "TradeAudit — Exchange Audit Trail",
+  "version": "0.1.0",
+  "description": "Tamper-evident audit trail for crypto trading. Logs what your exchange shows you — fills, balances, PnL, fees — with SHA-256 hash chain proof.",
+  "permissions": ["activeTab", "tabs", "storage", "scripting"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tradeaudit@rofomtl00",
+      "strict_min_version": "109.0"
+    }
+  },
+  "host_permissions": [
+    "https://www.bitget.com/*",
+    "https://www.binance.com/*",
+    "https://www.bybit.com/*",
+    "https://www.coinbase.com/*",
+    "https://pro.coinbase.com/*",
+    "https://www.kraken.com/*",
+    "https://pro.kraken.com/*",
+    "https://www.okx.com/*",
+    "https://www.gate.io/*",
+    "https://www.kucoin.com/*",
+    "https://www.crypto.com/*",
+    "https://app.hyperliquid.xyz/*",
+    "https://www.mexc.com/*",
+    "https://www.htx.com/*",
+    "https://www.deribit.com/*",
+    "https://trade.dydx.exchange/*",
+    "https://app.gmx.io/*",
+    "https://perp.exchange/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.bitget.com/*",
+        "https://www.binance.com/*",
+        "https://www.bybit.com/*",
+        "https://www.coinbase.com/*",
+        "https://pro.coinbase.com/*",
+        "https://www.kraken.com/*",
+        "https://pro.kraken.com/*",
+        "https://www.okx.com/*",
+        "https://www.gate.io/*",
+        "https://www.kucoin.com/*",
+        "https://www.crypto.com/*",
+        "https://app.hyperliquid.xyz/*",
+        "https://www.mexc.com/*",
+        "https://www.htx.com/*",
+        "https://www.deribit.com/*",
+        "https://trade.dydx.exchange/*",
+        "https://app.gmx.io/*",
+        "https://perp.exchange/*"
+      ],
+      "js": ["extractor.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

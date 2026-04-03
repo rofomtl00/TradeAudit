@@ -144,7 +144,7 @@ The core library is free and open source. The proxy and advanced features requir
 
 **Pro tier** is for everyone else — the proxy sits between your bot and the exchange, logging everything automatically. No code changes needed. Works with 3Commas, Gunbot, Pionex API, custom bots in any language, AI trading agents, or any tool that calls an exchange API.
 
-**$14.99 CAD/month** — [Get Pro License](https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312)
+**$29.99 one-time** — [Get Pro License](https://tradeaudit.lemonsqueezy.com/checkout/buy/8729f38a-7c43-4cd1-9eae-b96429338312)
 
 Your license key is emailed immediately after purchase. Activate on up to 3 machines.
 

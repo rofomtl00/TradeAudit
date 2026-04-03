@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TradeAudit — Exchange Audit Trail",
   "version": "0.1.0",
-  "description": "Tamper-evident audit trail for crypto trading. Logs what your exchange shows you — fills, balances, PnL, fees — with SHA-256 hash chain proof.",
+  "description": "Tamper-evident audit trail for crypto trading. Logs exchange data with SHA-256 hash chain proof.",
   "permissions": ["activeTab", "tabs", "storage", "scripting"],
   "browser_specific_settings": {
     "gecko": {

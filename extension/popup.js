@@ -147,11 +147,28 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
 // ── Clear ──
 document.getElementById('clearBtn').addEventListener('click', async () => {
   const store = await api.storage.local.get(AUDIT_KEY);
-  const count = (store[AUDIT_KEY] || []).length;
-  if (!count) { toast('Nothing to clear.', ''); return; }
-  if (!confirm('Delete all ' + count + ' audit entries? Export first if you need them.')) return;
+  const entries = store[AUDIT_KEY] || [];
+  if (!entries.length) { toast('Nothing to clear.', ''); return; }
+
+  // Auto-export before clearing
+  const hdr = 'seq,timestamp,event,symbol,side,strategy,decision_inputs,exchange_response,detail,prev_hash,hash';
+  const rows = entries.map(e =>
+    [e.seq,e.timestamp,e.event,e.symbol,e.side,e.strategy,
+     '"'+(e.decision_inputs||'').replace(/"/g,'""')+'"',
+     '"'+(e.exchange_response||'').replace(/"/g,'""')+'"',
+     '"'+(e.detail||'').replace(/"/g,'""')+'"',
+     e.prev_hash,e.hash].join(','));
+  const blob = new Blob([hdr+'\n'+rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tradeaudit_backup_' + date + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  // Then clear
   await api.storage.local.remove([AUDIT_KEY]);
-  toast('Cleared ' + count + ' entries.', 'ok');
+  toast('Backup saved and ' + entries.length + ' entries cleared.', 'ok');
   refresh();
 });
 

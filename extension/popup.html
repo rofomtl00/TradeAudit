@@ -59,11 +59,13 @@ body{width:320px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,
   </div>
 
   <div class="actions">
-    <button class="btn btn-cap" id="captureBtn">Capture</button>
-    <button class="btn btn-sub" id="verifyBtn">Verify</button>
-    <button class="btn btn-sub" id="digestBtn">Digest</button>
-    <button class="btn btn-sub" id="exportBtn">Export</button>
+    <button class="btn btn-cap" id="captureBtn" title="Take a snapshot of what the exchange is showing right now">Capture</button>
+    <button class="btn btn-sub" id="verifyBtn" title="Check that no audit records have been tampered with">Verify</button>
+    <button class="btn btn-sub" id="digestBtn" title="Generate a hash of the full audit trail — email it to yourself as dated proof">Digest</button>
+    <button class="btn btn-sub" id="exportBtn" title="Download the full audit trail as a CSV file">Export</button>
   </div>
+
+  <div id="toast" style="display:none;font-size:11px;padding:8px 10px;border-radius:6px;margin-bottom:8px;line-height:1.4"></div>
 
   <div class="entries" id="entries">
     <div class="empty">No events yet</div>

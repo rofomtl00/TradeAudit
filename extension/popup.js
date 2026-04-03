@@ -74,24 +74,35 @@ document.getElementById('captureBtn').addEventListener('click', async () => {
   btn.textContent = 'Capture';
 });
 
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type === 'ok' ? '#14532d' : type === 'err' ? '#450a0a' : '#111';
+  el.style.color = type === 'ok' ? '#22c55e' : type === 'err' ? '#ef4444' : '#999';
+  el.style.border = '1px solid ' + (type === 'ok' ? '#166534' : type === 'err' ? '#7f1d1d' : '#222');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
 // ── Verify ──
 document.getElementById('verifyBtn').addEventListener('click', async () => {
   const store = await api.storage.local.get(AUDIT_KEY);
   const entries = store[AUDIT_KEY] || [];
-  if (!entries.length) { alert('No entries.'); return; }
+  if (!entries.length) { toast('No entries yet.', ''); return; }
 
   let prev = 'GENESIS';
   for (const e of entries) {
     const row = `${e.seq}|${e.timestamp}|${e.event}|${e.symbol}|${e.side}|${e.strategy}|${e.decision_inputs}|${e.exchange_response}|${e.detail}|${e.prev_hash}`;
     const hash = await sha256(`${prev}|${row}`);
     if (e.hash !== hash || e.prev_hash !== prev) {
-      alert('BROKEN at entry #' + e.seq);
+      toast('Chain BROKEN at entry #' + e.seq + ' — data may be tampered.', 'err');
       document.getElementById('chainLabel').textContent = 'BROKEN';
       return;
     }
     prev = e.hash;
   }
-  alert('Valid — ' + entries.length + ' entries verified.');
+  toast('Chain valid — all ' + entries.length + ' entries verified.', 'ok');
   document.getElementById('chainLabel').textContent = 'chain ok';
 });
 
@@ -99,12 +110,12 @@ document.getElementById('verifyBtn').addEventListener('click', async () => {
 document.getElementById('digestBtn').addEventListener('click', async () => {
   const store = await api.storage.local.get([AUDIT_KEY, DIGEST_KEY]);
   const entries = store[AUDIT_KEY] || [];
-  if (!entries.length) { alert('No entries.'); return; }
+  if (!entries.length) { toast('No entries yet.', ''); return; }
   const hash = await sha256(JSON.stringify(entries));
   const digests = store[DIGEST_KEY] || [];
   digests.push({timestamp: new Date().toISOString(), rows: entries.length, sha256: hash});
   await api.storage.local.set({[DIGEST_KEY]: digests});
-  alert('Digest: ' + hash.slice(0, 32) + '...\nEmail this to yourself as proof.');
+  toast('Digest: ' + hash.slice(0, 24) + '... — email this to yourself as proof.', 'ok');
   refresh();
 });
 
@@ -112,7 +123,7 @@ document.getElementById('digestBtn').addEventListener('click', async () => {
 document.getElementById('exportBtn').addEventListener('click', async () => {
   const store = await api.storage.local.get(AUDIT_KEY);
   const entries = store[AUDIT_KEY] || [];
-  if (!entries.length) { alert('No entries.'); return; }
+  if (!entries.length) { toast('No entries yet.', ''); return; }
   const hdr = 'seq,timestamp,event,symbol,side,strategy,decision_inputs,exchange_response,detail,prev_hash,hash';
   const rows = entries.map(e =>
     [e.seq,e.timestamp,e.event,e.symbol,e.side,e.strategy,

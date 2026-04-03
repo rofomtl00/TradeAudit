@@ -4,101 +4,74 @@
 <meta charset="UTF-8">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:380px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;color:#e0e0e0}
-.header{background:#111;padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:16px;color:#fff}.header h1 span{color:#ef4444}
-.main{padding:16px}
-.btn{display:block;width:100%;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;text-align:center;margin-bottom:6px}
-.btn-primary{background:#1e3a5f;color:#60a5fa}
-.btn-primary:hover{background:#1e40af}
-.btn-green{background:#14532d;color:#22c55e}
-.btn-green:hover{background:#166534}
-.btn-blue{background:#1e3a5f;color:#60a5fa}
-.btn-blue:hover{background:#1e40af}
-.btn:disabled{opacity:0.4;cursor:not-allowed}
+body{width:320px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;color:#e0e0e0}
+.header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1a1a1a}
+.header h1{font-size:15px;color:#fff;font-weight:600}.header h1 span{color:#ef4444}
+.header .meta{font-size:11px;color:#555}
+.main{padding:14px 16px}
 
-.exchange{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#111;border:1px solid #222;border-radius:6px;margin-bottom:10px;font-size:13px}
-.exchange .dot{width:8px;height:8px;border-radius:50%}
-.dot-ok{background:#22c55e}
-.dot-err{background:#ef4444}
+.exchange{font-size:13px;color:#999;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-on{background:#22c55e}
+.dot-off{background:#555}
 
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.card{background:#111;border:1px solid #222;border-radius:8px;padding:10px;text-align:center}
-.card .val{font-size:20px;font-weight:700;color:#fff}
-.card .val.ok{color:#22c55e}
-.card .val.err{color:#ef4444}
-.card .lbl{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.stats{display:flex;gap:12px;margin-bottom:14px}
+.stat{text-align:center;flex:1}
+.stat .num{font-size:18px;font-weight:700;color:#fff}
+.stat .num.ok{color:#22c55e}
+.stat .lbl{font-size:10px;color:#555;margin-top:1px}
 
-.status{padding:8px 10px;border-radius:6px;font-size:12px;margin-bottom:10px;line-height:1.5}
-.status-ok{background:#14532d;border:1px solid #166534;color:#22c55e}
-.status-idle{background:#111;border:1px solid #222;color:#999}
-.status-recording{background:#14532d;border:1px solid #166534;color:#22c55e}
+.actions{display:flex;gap:6px;margin-bottom:12px}
+.btn{flex:1;padding:8px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;text-align:center;transition:background .15s}
+.btn-cap{background:#1a1a2e;color:#a78bfa}
+.btn-cap:hover{background:#2e1a5f}
+.btn-sub{background:#111;color:#888;border:1px solid #222}
+.btn-sub:hover{background:#1a1a1a}
+.btn:disabled{opacity:0.3;cursor:default}
 
-.log{background:#111;border:1px solid #222;border-radius:8px;padding:10px;margin-top:10px;max-height:180px;overflow-y:auto}
-.log h3{font-size:12px;color:#666;margin-bottom:6px}
-.log-entry{font-size:11px;color:#999;padding:3px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between}
-.log-entry .time{color:#666}
-.log-entry .event{font-weight:600;font-size:10px;padding:1px 6px;border-radius:3px}
-.ev-SNAPSHOT{background:#1e3a5f;color:#60a5fa}
+.entries{max-height:140px;overflow-y:auto}
+.entry{font-size:11px;color:#666;padding:4px 0;display:flex;justify-content:space-between}
+.entry .time{color:#444;font-family:monospace}
+.entry .info{color:#888}
+.empty{font-size:12px;color:#444;text-align:center;padding:16px 0}
 
-.footer{padding:10px 16px;border-top:1px solid #222;text-align:center}
-.footer a{color:#666;font-size:11px;text-decoration:none}
-.footer a:hover{color:#999}
+.footer{padding:10px 16px;border-top:1px solid #1a1a1a;text-align:center}
+.footer a{color:#444;font-size:10px;text-decoration:none}
+.footer a:hover{color:#888}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>Trade<span>Audit</span></h1>
-  <span style="font-size:11px;color:#666">v0.1.0</span>
+  <span class="meta" id="chainLabel">—</span>
 </div>
 
 <div class="main">
-  <div class="exchange" id="exchangeInfo">
-    <div class="dot dot-err" id="exchangeDot"></div>
-    <span id="exchangeName">Detecting exchange...</span>
+  <div class="exchange">
+    <div class="dot dot-off" id="dot"></div>
+    <span id="exchangeName">Detecting...</span>
   </div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="val" id="chainStatus">...</div>
-      <div class="lbl">Chain</div>
-    </div>
-    <div class="card">
-      <div class="val" id="entryCount">0</div>
-      <div class="lbl">Events</div>
-    </div>
-    <div class="card">
-      <div class="val" id="digestCount">0</div>
-      <div class="lbl">Digests</div>
-    </div>
-    <div class="card">
-      <div class="val" id="autoStatus">...</div>
-      <div class="lbl">Recording</div>
-    </div>
+  <div class="stats">
+    <div class="stat"><div class="num" id="events">0</div><div class="lbl">Events</div></div>
+    <div class="stat"><div class="num" id="digests">0</div><div class="lbl">Digests</div></div>
   </div>
 
-  <div class="status status-idle" id="status">
-    TradeAudit automatically captures snapshots every 30 seconds while you're on an exchange.
+  <div class="actions">
+    <button class="btn btn-cap" id="captureBtn">Capture</button>
+    <button class="btn btn-sub" id="verifyBtn">Verify</button>
+    <button class="btn btn-sub" id="digestBtn">Digest</button>
+    <button class="btn btn-sub" id="exportBtn">Export</button>
   </div>
 
-  <button class="btn btn-primary" id="captureBtn">Capture Now</button>
-
-  <div style="display:flex;gap:4px">
-    <button class="btn btn-green" id="verifyBtn" style="flex:1;font-size:12px">Verify Chain</button>
-    <button class="btn btn-blue" id="digestBtn" style="flex:1;font-size:12px">Write Digest</button>
-    <button class="btn" id="exportBtn" style="flex:1;font-size:12px;background:#222;color:#999">Export CSV</button>
-  </div>
-
-  <div class="log" id="recentLog">
-    <h3>Recent Events</h3>
-    <div id="logEntries" style="color:#666;font-size:12px">Loading...</div>
+  <div class="entries" id="entries">
+    <div class="empty">No events yet</div>
   </div>
 </div>
 
 <div class="footer">
-  <a href="https://rofomtl00.github.io/TradeAudit/" target="_blank">Website</a> ·
-  <a href="https://github.com/rofomtl00/TradeAudit" target="_blank">GitHub</a>
+  <a href="https://rofomtl00.github.io/TradeAudit/" target="_blank">tradeaudit</a>
 </div>
 
 <script src="popup.js"></script>
